@@ -51,6 +51,8 @@ public class Crud {
      * @throws RuntimeException if there is an error searching the database
      */
     public static User searchByUsername(String username) {
+        username = sanitize(username);
+
         ResultSet rs = null;
         User user = null;
 
@@ -76,6 +78,8 @@ public class Crud {
      * @throws RuntimeException if there is an error deleting the user
      */
     public static void deleteUserByUsername(String username) {
+        username = sanitize(username);
+
         try (var connection = DBUtil.connect(DB_URL, DB_USER, DB_PASSWORD);
              Statement stmt = connection.createStatement()) {
 
@@ -99,5 +103,19 @@ public class Crud {
                 rs.getString("username"),
                 rs.getString("password")
         );
+    }
+
+    private static String sanitize(String input) {
+        if (input == null) {
+            return "";
+        }
+
+        // Allow only alphanumeric characters and underscores, this function uses pattern matching
+        if (!input.matches("^[a-zA-Z0-9_]+$")) {
+            throw new IllegalArgumentException("Invalid input: Only alphanumeric characters and underscores are allowed.");
+        }
+
+        // Replaces old character to new character, this function uses regular expression
+        return input.replace("'", "''").replaceAll("[^a-zA-Z0-9_]", "");
     }
 }

@@ -18,6 +18,9 @@ public class Authenticator {
      * @throws RuntimeException if there is a SQL error during authentication
      */
     public static boolean authenticateUser(String username, String password) {
+        username = sanitize(username);
+        password = sanitize(password);
+
         try(var conn = DBUtil.connect("jdbc:sqlite:src/main/resources/database/sample.db",
                 "root","root")) {
             try(var statement = conn.createStatement()) {
@@ -33,5 +36,19 @@ public class Authenticator {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static String sanitize(String input) {
+        if (input == null) {
+            return "";
+        }
+
+        // Allow only alphanumeric characters and underscores, this function uses pattern matching
+        if (!input.matches("^[a-zA-Z0-9_]+$")) {
+            throw new IllegalArgumentException("Invalid input: Only alphanumeric characters and underscores are allowed.");
+        }
+
+        // Replaces old character to new character, this function uses regular expression
+        return input.replace("'", "''").replaceAll("[^a-zA-Z0-9_]", "");
     }
 }
